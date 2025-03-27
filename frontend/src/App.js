@@ -1,41 +1,52 @@
-// import logo from './logo.svg';
-// import './App.css';
+import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
 
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Edit <code>src/App.js</code> and save to reload.
-//         </p>
-//         <a
-//           className="App-link"
-//           href="https://reactjs.org"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           Learn React
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
-
-// export default App;
-
-
+import AuthModal from "./components/authModal";
+import Profile from "./components/profile";
 import UploadForm from "./components/UploadForm";
 import SearchBar from "./components/SearchBar";
+import Navbar from "./components/Navbar";
+import Notification from "./components/Notifications";
 
 function App() {
+  const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
+
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-6">
-      <h1 className="text-2xl font-bold text-gray-700 mb-4">Question Paper Archive</h1>
-      <UploadForm />
-      <div className="my-6"></div> {/* Spacing */}
-      <SearchBar />
-    </div>
+    <AuthProvider>
+      <Router>
+        {/* Navbar with login/signup buttons */}
+        <Navbar setShowLogin={setShowLogin} setShowSignup={setShowSignup} />
+
+        <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-6">
+          <h1 className="text-2xl font-bold text-gray-700 mb-4">Question Paper Archive</h1>
+
+          {/* Define Routes */}
+          <Routes>
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/upload" element={<UploadForm />} />
+            <Route path="/searchQuestion" element={<SearchBar />} />
+            <Route path="/notifications" element={<Notification />} />
+            <Route path="/" element={
+              <>
+                <UploadForm />
+                <div className="my-6"></div> {/* Spacing */}
+                <SearchBar />
+              </>
+            } />
+          </Routes>
+        </div>
+
+        {/* Login & Signup Pop-up Modals */}
+        <AuthModal 
+          showLogin={showLogin} 
+          showSignup={showSignup} 
+          setShowLogin={setShowLogin} 
+          setShowSignup={setShowSignup} 
+        />
+      </Router>
+    </AuthProvider>
   );
 }
 
