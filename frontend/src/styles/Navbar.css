@@ -40,3 +40,29 @@
 .navbar-button:hover {
   background-color: #ff4500;
 }
+
+.notification-container {
+  position: relative;
+  cursor: pointer;
+  margin-left: 20px;
+}
+
+.notification-icon {
+  width: 24px;
+  height: 24px;
+  color: white;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: red;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 50%;
+  min-width: 18px;
+  text-align: center;
+}

@@ -1,101 +1,85 @@
-import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import { CheckCircle } from "lucide-react";
 
-const Notifications = ({ userId }) => {
+const Notifications = ({ token }) => {
   const [notifications, setNotifications] = useState([]);
-  const socket = io("http://localhost:5000", { transports: ["websocket"] });
+  const finalToken = token || localStorage.getItem("token");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-  
-    if (!token) {
-      console.error("No token found, user needs to log in");
-      return;
-    }
-  
-    console.log("Token being sent:", token); // Debugging
-  
-    axios.get("http://localhost:5000/api/notifications", {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    .then((res) => setNotifications(res.data))
-    .catch((err) => {
-      console.error("############################Axios Error:", err);
-      if (err.response) {
-        console.error("Error Response:", err.response);
+    const fetchNotifications = async () => {
+      if (!finalToken) {
+        console.error("finalToken is missing!!");
+        return;
       }
-    });
-  }, []);
-  
+      try {
+        const res = await axios.get("http://localhost:5000/api/notifications", {
+          headers: { Authorization: `Bearer ${finalToken}` },
+        });
+        setNotifications(res.data);
+      } catch (err) {
+        console.error("Error fetching notifications:", err);
+      }
+    };
+    fetchNotifications();
+  }, [finalToken]);
 
-  useEffect(() => {
-    axios.get("http://localhost:5000/api/notifications")
-      .then((res) => setNotifications(res.data))
-      .catch((err) => console.error(err));
-  }, []);
+  const markAsRead = async (id) => {
+    try {
+      await axios.patch(
+        `http://localhost:5000/api/notifications/${id}/mark-read`,
+        {},
+        { headers: { Authorization: `Bearer ${finalToken}` } }
+      );
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
+      );
+    } catch (err) {
+      console.error("Error marking notification as read:", err);
+    }
+  };
 
   return (
-    <div>
-      <h2>Notifications</h2>
-      {notifications.map((noti) => (
-        <div key={noti._id} style={{ background: noti.isRead ? "#ddd" : "#f9f9f9", padding: "10px", marginBottom: "5px" }}>
-          {noti.message}
-        </div>
-      ))}
+    <div className="min-h-screen bg-gray-100 p-6">
+      <div className="max-w-3xl mx-auto">
+        <h2 className="text-2xl font-bold mb-4">Notifications</h2>
+        {notifications.length === 0 ? (
+          <p className="text-gray-600 text-center">No notifications yet.</p>
+        ) : (
+          notifications.map((notification) => (
+            <div
+              key={notification._id}
+              className={`flex items-start justify-between p-4 rounded-lg shadow-md mb-4 transition-all duration-300 ${
+                notification.isRead ? "bg-white" : "bg-blue-50"
+              } hover:shadow-lg hover:scale-[1.02]`}
+            >
+              <div>
+                <p className="text-gray-800">{notification.message}</p>
+                {notification.questionPaperUrl && (
+                  <a
+                    href={notification.questionPaperUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline text-sm"
+                  >
+                    View Question Paper
+                  </a>
+                )}
+              </div>
+              {!notification.isRead && (
+                <button
+                  onClick={() => markAsRead(notification._id)}
+                  className="text-green-600 hover:text-green-700"
+                >
+                  <CheckCircle className="w-6 h-6" />
+                </button>
+              )}
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };
 
 export default Notifications;
-
-// import { useEffect, useState } from "react";
-// import { io } from "socket.io-client";
-// import axios from "axios";
-
-// const Notifications = ({ userId }) => {
-//   const [notifications, setNotifications] = useState([]);
-
-//   useEffect(() => {
-//     const socket = io("http://localhost:5000", { transports: ["websocket"] });
-
-//     socket.emit("join", userId);
-
-//     socket.on("newNotification", (notification) => {
-//       setNotifications((prev) => [notification, ...prev]);
-//     });
-
-//     return () => {
-//       console.log("Disconnecting WebSocket...");
-//       socket.disconnect();
-//     };
-//   }, [userId]);
-
-//   useEffect(() => {
-//     const token = localStorage.getItem("token");
-//     console.log("Sending token:", token); // Debugging
-
-//     axios
-//       .get("http://localhost:5000/api/notifications", {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//         },
-//       })
-//       .then((res) => setNotifications(res.data))
-//       .catch((err) => console.error("Axios Error:", err.response)); // Log error
-
-//   }, []);
-
-//   return (
-//     <div>
-//       <h2>Notifications</h2>
-//       {notifications.map((noti) => (
-//         <div key={noti._id} style={{ background: noti.isRead ? "#ddd" : "#f9f9f9", padding: "10px", marginBottom: "5px" }}>
-//           {noti.message}
-//         </div>
-//       ))}
-//     </div>
-//   );
-// };
-
-// export default Notifications;

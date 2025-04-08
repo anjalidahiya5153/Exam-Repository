@@ -7,7 +7,9 @@ import Profile from "./components/profile";
 import UploadForm from "./components/UploadForm";
 import SearchBar from "./components/SearchBar";
 import Navbar from "./components/Navbar";
-import Notification from "./components/Notifications";
+import Notifications from "./components/Notifications";
+import QuestionPaperArchive from "./components/QuestionPaperArchive";
+import FilterSearch from "./components/FilterSearch";
 
 function App() {
   const [showLogin, setShowLogin] = useState(false);
@@ -20,14 +22,15 @@ function App() {
         <Navbar setShowLogin={setShowLogin} setShowSignup={setShowSignup} />
 
         <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-6">
-          <h1 className="text-2xl font-bold text-gray-700 mb-4">Question Paper Archive</h1>
+          {/* <h1 className="text-2xl font-bold text-gray-700 mb-4">Question Paper Archive</h1> */}
 
           {/* Define Routes */}
           <Routes>
             <Route path="/profile" element={<Profile />} />
             <Route path="/upload" element={<UploadForm />} />
             <Route path="/searchQuestion" element={<SearchBar />} />
-            <Route path="/notifications" element={<Notification />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/questionPaperArchive" element={<QuestionPaperArchive />} />
             <Route path="/" element={
               <>
                 <UploadForm />
@@ -35,6 +38,7 @@ function App() {
                 <SearchBar />
               </>
             } />
+            <Route path="/filter" element={<FilterSearch />} />
           </Routes>
         </div>
 

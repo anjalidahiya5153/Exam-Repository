@@ -1,45 +1,27 @@
 const Notification = require("../models/Notification");
-const { getIoInstance } = require("../sockets/socketHandler");
 
-exports.createNotification = async (userId, message) => {
+// Get all notifications for logged-in user
+exports.getUserNotifications = async (req, res) => {
   try {
-    const notification = new Notification({ userId, message });
-    await notification.save();
-    
-    const io = getIoInstance();
-    
-    console.log(`Sending notification to user ${userId}`);
-    io.to(userId.toString()).emit("newNotification", notification);
-
-  } catch (error) {
-    console.error("Error creating notification:", error);
+    const notifications = await Notification.find({ userId: req.user })
+    .populate("questionPaperId", "filename url") // ✅ Populate question paper URL
+    .sort({ createdAt: -1 });
+    res.json(notifications);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
   }
 };
 
-exports.getUserNotifications = async (req, res) => {
-    try {
-        console.log("Decoded User from Middleware in notificationController:", req.user); // Debugging
-            //req.user is actually the id of hte user
-        if (!req.user) {
-            console.log("req.user is undefined in notification controller");
-            return res.status(401).json({ message: "Unauthorized: No user object" });
-        }
-
-        console.log("req.user is valid, proceeding to fetch notifications...");
-        const notifications = await Notification.find({ userId: req.user }).sort({ createdAt: -1 });
-        console.log("notifications : ", notifications );
-        res.status(200).json(notifications);
-    } catch (error) {
-        console.error("Error fetching notifications:", error);
-        res.status(500).json({ message: "Server Error" });
-    }
-};
-
-exports.markAsRead = async (req, res) => {
+// Mark a notification as read
+exports.markNotificationRead = async (req, res) => {
   try {
-    await Notification.findByIdAndUpdate(req.params.id, { isRead: true });
-    res.status(200).json({ message: "Notification marked as read" });
-  } catch (error) {
-    res.status(500).json({ message: "Server Error" });
+    const notification = await Notification.findById(req.params.id);
+    if (!notification) return res.status(404).json({ error: "Notification not found" });
+
+    notification.isRead = true;
+    await notification.save();
+    res.json({ message: "Notification marked as read" });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
   }
 };
